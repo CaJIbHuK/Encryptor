@@ -1,15 +1,9 @@
-#include <algorithm>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <random>
-#include <openssl/evp.h>
-#include <openssl/aes.h>
-#include <openssl/des.h>
-#include <openssl/rand.h>
 
-enum class EncType {OTP, AES256, DES};
+#include <vector>
+#include <iostream>
+
+
+enum class EncType {OTP, AES256, DES, RC4};
 enum class EncAction {DECRYPT = 0, ENCRYPT = 1};
 enum class ContentProviderType {File};
 enum class ContentDirection {In, Out, InOut};
@@ -23,12 +17,11 @@ public:
     virtual bool isEOData() const = 0;
     virtual long size(bool useCachedValue = true) = 0;
     virtual bool write(std::vector<u_char> &buffer) = 0;
-    virtual bool read(std::vector<u_char> &out, std::streamsize  count = 0) = 0;
+    virtual bool read(std::vector<u_char> &out, long  count = 0) = 0;
 };
 
 class Encryptor{
 private:
-    const EVP_CIPHER *type;
     ContentProvider *_in;
     ContentProvider *_out;
     ContentProvider *_key;
@@ -41,9 +34,8 @@ protected:
     ContentProvider* getInCP();
     ContentProvider* getOutCP();
     ContentProvider* getKeyCP();
-    const EVP_CIPHER* getType();
 public:
-    Encryptor(const EVP_CIPHER *type, ContentProvider *cpIn, ContentProvider *cpOut, ContentProvider *cpKey);
+    Encryptor(ContentProvider *cpIn, ContentProvider *cpOut, ContentProvider *cpKey);
     void setCtx(ContentProvider* cpIn, ContentProvider* cpOut, ContentProvider* cpKey);
     virtual ~Encryptor();
     virtual bool encrypt() = 0;
